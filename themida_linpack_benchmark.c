@@ -1,3 +1,4 @@
+#include "VirtualizerSDK.h"
 # include <float.h>
 # include <math.h>
 # include <stdio.h>
@@ -257,6 +258,18 @@ double cpu_time ( )
 }
 /******************************************************************************/
 
+/*?
+{
+    "type": "method",
+    "virtualize":
+    {
+        "key1": {
+            "type": "bool",
+            "value": true
+        }
+    }
+}
+?*/
 void daxpy ( int n, double da, double dx[], int incx, double dy[], int incy )
 
 /******************************************************************************/
@@ -314,6 +327,7 @@ void daxpy ( int n, double da, double dx[], int incx, double dy[], int incy )
 
 */
 {
+  VIRTUALIZER_START
   int i;
   int ix;
   int iy;
@@ -379,10 +393,22 @@ void daxpy ( int n, double da, double dx[], int incx, double dy[], int incy )
       dy[i+3] = dy[i+3] + da * dx[i+3];
     }
   }
+  VIRTUALIZER_END
   return;
 }
 /******************************************************************************/
-
+/*?
+{
+    "type": "method",
+    "virtualize":
+    {
+        "key1": {
+            "type": "bool",
+            "value": true
+        }
+    }
+}
+?*/
 double ddot ( int n, double dx[], int incx, double dy[], int incy )
 
 /******************************************************************************/
@@ -438,6 +464,7 @@ double ddot ( int n, double dx[], int incx, double dy[], int incy )
     entries of DX and DY.
 */
 {
+  VIRTUALIZER_START
   double dtemp;
   int i;
   int ix;
@@ -502,10 +529,22 @@ double ddot ( int n, double dx[], int incx, double dy[], int incy )
                     + dx[i+4] * dy[i+4];
     }
   }
+  VIRTUALIZER_END
   return dtemp;
 }
 /******************************************************************************/
-
+/*?
+{
+    "type": "method",
+    "virtualize":
+    {
+        "key1": {
+            "type": "bool",
+            "value": true
+        }
+    }
+}
+?*/
 int dgefa ( double a[], int lda, int n, int ipvt[] )
 
 /******************************************************************************/
@@ -560,6 +599,7 @@ int dgefa ( double a[], int lda, int n, int ipvt[] )
     Use RCOND in DGECO for a reliable indication of singularity.
 */
 {
+  VIRTUALIZER_START
   int info;
   int j;
   int k;
@@ -622,11 +662,22 @@ int dgefa ( double a[], int lda, int n, int ipvt[] )
   {
     info = n;
   }
-
+  VIRTUALIZER_END
   return info;
 }
 /******************************************************************************/
-
+/*?
+{
+    "type": "method",
+    "virtualize":
+    {
+        "key1": {
+            "type": "bool",
+            "value": true
+        }
+    }
+}
+?*/
 void dgesl ( double a[], int lda, int n, int ipvt[], double b[], int job )
 
 /******************************************************************************/
@@ -691,6 +742,7 @@ void dgesl ( double a[], int lda, int n, int ipvt[], double b[], int job )
     double B[N]: the solution vector.
 */
 {
+  VIRTUALIZER_START
   int k;
   int l;
   double t;
@@ -745,10 +797,22 @@ void dgesl ( double a[], int lda, int n, int ipvt[], double b[], int job )
       }
     }
   }
+  VIRTUALIZER_END
   return;
 }
 /******************************************************************************/
-
+/*?
+{
+    "type": "method",
+    "virtualize":
+    {
+        "key1": {
+            "type": "bool",
+            "value": true
+        }
+    }
+}
+?*/
 void dscal ( int n, double sa, double x[], int incx )
 
 /******************************************************************************/
@@ -797,6 +861,7 @@ void dscal ( int n, double sa, double x[], int incx )
     double X[*]: the scaled vector.
 */
 {
+  VIRTUALIZER_START
   int i;
   int ix;
   int m;
@@ -839,10 +904,22 @@ void dscal ( int n, double sa, double x[], int incx )
       ix = ix + incx;
     }
   }
+  VIRTUALIZER_END
   return;
 }
 /******************************************************************************/
-
+/*?
+{
+    "type": "method",
+    "virtualize":
+    {
+        "key1": {
+            "type": "bool",
+            "value": true
+        }
+    }
+}
+?*/
 int idamax ( int n, double dx[], int incx )
 
 /******************************************************************************/
@@ -893,6 +970,7 @@ int idamax ( int n, double dx[], int incx )
     int IDAMAX, the index of the element of maximum absolute value.
 */
 {
+  VIRTUALIZER_START
   double dmax;
   int i;
   int ix;
@@ -941,11 +1019,22 @@ int idamax ( int n, double dx[], int incx )
       ix = ix + incx;
     }
   }
-
+  VIRTUALIZER_END
   return value;
 }
 /******************************************************************************/
-
+/*?
+{
+    "type": "method",
+    "virtualize":
+    {
+        "key1": {
+            "type": "bool",
+            "value": true
+        }
+    }
+}
+?*/
 double r8_random ( int iseed[4] )
 
 /******************************************************************************/
@@ -991,6 +1080,7 @@ double r8_random ( int iseed[4] )
     double R8_RANDOM, the next pseudorandom number.
 */
 {
+  VIRTUALIZER_START
   int ipw2 = 4096;
   int it1;
   int it2;
@@ -1031,7 +1121,7 @@ double r8_random ( int iseed[4] )
     + r * ( ( double ) ( it2 ) 
     + r * ( ( double ) ( it3 ) 
     + r * ( ( double ) ( it4 ) ) ) ) );
-
+  VIRTUALIZER_END
   return value;
 }
 /******************************************************************************/
@@ -1068,6 +1158,7 @@ double *r8mat_gen ( int lda, int n )
     double R8MAT_GEN[LDA*N], the N by N matrix.
 */
 {
+  VIRTUALIZER_START
   double *a;
   int i;
   int init[4] = { 1, 2, 3, 1325 };
@@ -1082,11 +1173,22 @@ double *r8mat_gen ( int lda, int n )
       a[i-1+(j-1)*lda] = r8_random ( init ) - 0.5;
     }
   }
-
+  VIRTUALIZER_END
   return a;
 }
 /******************************************************************************/
-
+/*?
+{
+    "type": "method",
+    "virtualize":
+    {
+        "key1": {
+            "type": "bool",
+            "value": true
+        }
+    }
+}
+?*/
 double r8mat_norm_li ( int lda, int m, int n, double a[] )
 
 /******************************************************************************/
@@ -1134,6 +1236,7 @@ double r8mat_norm_li ( int lda, int m, int n, double a[] )
     double R8MAT_NORM_LI, the L-oo norm of A.
 */
 {
+  VIRTUALIZER_START
   int i;
   int j;
   double row_sum;
@@ -1150,6 +1253,7 @@ double r8mat_norm_li ( int lda, int m, int n, double a[] )
     }
     value = fmax ( value, row_sum );
   }
+  VIRTUALIZER_END
   return value;
 }
 /******************************************************************************/
