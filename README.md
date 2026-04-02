@@ -17,13 +17,8 @@ Following functions were obfuscated during performance measurement:
 ```c
 void daxpy ( int n, double da, double dx[], int incx, double dy[], int incy );
 double ddot ( int n, double dx[], int incx, double dy[], int incy );
-int dgefa ( double a[], int lda, int n, int ipvt[] );
-void dgesl ( double a[], int lda, int n, int ipvt[], double b[], int job );
 void dscal ( int n, double sa, double x[], int incx );
 int idamax ( int n, double dx[], int incx );
-double r8_random ( int iseed[4] );
-double *r8mat_gen ( int lda, int n );
-double r8mat_norm_li ( int lda, int m, int n, double A[] );
 ```
 
 ## Original binary
@@ -33,7 +28,7 @@ clang -O0 linpack_bench.c -o linpack
 ```
 
 ## Softcom LLVM obfuscator
-Use `llvm_linpack_bench.c` source file. It has comments for virtualization pass in all function above.
+Use `llvm_linpack_bench.c` source file. It has comments for virtualization pass in function above.
 
 Compile C source file using clang version with obfuscation passes:
 ```bash
@@ -54,7 +49,7 @@ Add include of `tigress.h` header file in begging of linpack source code. Withou
 
 Use following script to virtualize linpack using tigress:
 ```bash
-tigress --Compiler=clang --Transform=Virtualize --Functions=comma_separated_functions_from_above \
+tigress --Compiler=clang --Transform=Virtualize --Functions=daxpy,ddot,dscal,idamax \
         linpack_bench.c --out=tigress_linpack_bench.c
 ```
 Compile result C file using clang:

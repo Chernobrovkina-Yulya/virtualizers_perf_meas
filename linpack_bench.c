@@ -6,6 +6,7 @@
 
 int main (int argc, char** argv);
 double cpu_time ( );
+double wall_time();
 void daxpy ( int n, double da, double dx[], int incx, double dy[], int incy );
 double ddot ( int n, double dx[], int incx, double dy[], int incy );
 int dgefa ( double a[], int lda, int n, int ipvt[] );
@@ -64,8 +65,7 @@ int main (int argc, char** argv)
   double *r;
   double r_norm;
   double ratio;
-  double t;
-  double t2;
+  volatile double t, t2;
   double unit;
   double *x;
   double *x_exact;
@@ -119,10 +119,9 @@ int main (int argc, char** argv)
     }
   }
 
-  t = cpu_time ( );
-  info = dgefa ( ALU, lda, n, ipvt );
-  t = cpu_time ( ) - t;
-
+  t = wall_time();
+  info = dgefa(ALU, lda, n, ipvt);
+  t = wall_time() - t;
   if ( info != 0 )
   {
     printf ( "\n" );
@@ -138,9 +137,9 @@ int main (int argc, char** argv)
     x[i] = b[i];
   }
 
-  t2 = cpu_time ( );
-  dgesl ( ALU, lda, n, ipvt, x, job );
-  t2 = cpu_time ( ) - t2;
+  t2 = wall_time();
+  dgesl(ALU, lda, n, ipvt, x, job);
+  t2 = wall_time() - t2;
 
   t = t + t2;
 /*
@@ -254,6 +253,12 @@ double cpu_time ( )
         / ( double ) CLOCKS_PER_SEC;
 
   return value;
+}
+
+double wall_time() {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return ts.tv_sec + ts.tv_nsec * 1e-9;
 }
 /******************************************************************************/
 

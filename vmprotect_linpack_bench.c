@@ -568,7 +568,6 @@ int dgefa ( double a[], int lda, int n, int ipvt[] )
     Use RCOND in DGECO for a reliable indication of singularity.
 */
 {
-  VMProtectBeginVirtualization(MARKER_TITLE);
   int info;
   int j;
   int k;
@@ -633,7 +632,6 @@ int dgefa ( double a[], int lda, int n, int ipvt[] )
   }
 
   return info;
-  VMProtectEnd();
 }
 
 /******************************************************************************/
@@ -702,7 +700,6 @@ void dgesl ( double a[], int lda, int n, int ipvt[], double b[], int job )
     double B[N]: the solution vector.
 */
 {
-  VMProtectBeginVirtualization(MARKER_TITLE);
   int k;
   int l;
   double t;
@@ -758,7 +755,6 @@ void dgesl ( double a[], int lda, int n, int ipvt[], double b[], int job )
     }
   }
   return;
-  VMProtectEnd();
 }
 
 /******************************************************************************/
@@ -1011,7 +1007,6 @@ double r8_random ( int iseed[4] )
     double R8_RANDOM, the next pseudorandom number.
 */
 {
-  VMProtectBeginVirtualization(MARKER_TITLE);
   int ipw2 = 4096;
   int it1;
   int it2;
@@ -1054,7 +1049,6 @@ double r8_random ( int iseed[4] )
     + r * ( ( double ) ( it4 ) ) ) ) );
 
   return value;
-  VMProtectEnd();
 }
 
 /******************************************************************************/
@@ -1091,7 +1085,6 @@ double *r8mat_gen ( int lda, int n )
     double R8MAT_GEN[LDA*N], the N by N matrix.
 */
 {
-  VMProtectBeginVirtualization(MARKER_TITLE);
   double *a;
   int i;
   int init[4] = { 1, 2, 3, 1325 };
@@ -1108,7 +1101,6 @@ double *r8mat_gen ( int lda, int n )
   }
 
   return a;
-  VMProtectEnd();
 }
 
 /******************************************************************************/
@@ -1160,7 +1152,6 @@ double r8mat_norm_li ( int lda, int m, int n, double a[] )
     double R8MAT_NORM_LI, the L-oo norm of A.
 */
 {
-  VMProtectBeginVirtualization(MARKER_TITLE);
   int i;
   int j;
   double row_sum;
@@ -1178,7 +1169,6 @@ double r8mat_norm_li ( int lda, int m, int n, double a[] )
     value = fmax ( value, row_sum );
   }
   return value;
-  VMProtectEnd();
 }
 
 /******************************************************************************/

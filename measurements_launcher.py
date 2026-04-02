@@ -10,24 +10,27 @@ import time
 import csv
 import statistics
 import argparse
+import numpy as np
 from pathlib import Path
 Path("results").mkdir(exist_ok=True)
 SCRIPT_DIR = Path(__file__).parent.resolve()
 
 # Configuration
-N_RUNS = 20
+N_RUNS_ORIG = 200   # original version executes far more fast, so increase number of runs
+N_RUNS_OBF = 40     # should be less, since VMProtect too slow
 # Binary files
 ORIG_BIN =  SCRIPT_DIR / "linpack"
 LLVM_BIN =  SCRIPT_DIR / "llvm_linpack"
 TIGRESS_BIN =  SCRIPT_DIR / "tigress_linpack"
 VMPROTECT_BIN =  SCRIPT_DIR / "vmprotect_linpack"
-THEMIDA_BIN =  SCRIPT_DIR / "themida_linpack"
+THEMIDA_BIN =  SCRIPT_DIR / "themida_linpack_protected"
 
 def run_benchmark(exe, N):
-    """Run the benchmark and return (time_seconds, mflops)."""
-    result = subprocess.run([exe, str(N)], capture_output=True, text=True)
+    """Run the benchmark with CPU affinity and high priority, return (time_seconds, mflops)."""
+    # cmd: taskset + nice + linpack
+    cmd = ['taskset', '-c', '0', 'nice', '-n', '-20', exe, str(N)]
+    result = subprocess.run(cmd, capture_output=True, text=True)
     output = result.stdout + result.stderr
-    # Parse time and MFLOPS from output
     time_match = re.search(r"Time in seconds\s*=\s*([0-9.eE+-]+)", output)
     mflops_match = re.search(r"MegaFLOPS\s*=\s*([0-9.eE+-]+)", output)
     if time_match and mflops_match:
@@ -49,8 +52,6 @@ def measure(exe, runs, N):
             results.append((t, mf))
         else:
             print("Skipping this run due to error.")
-        # Small pause
-        time.sleep(0.5)
     return results
 
 def save_csv(data, filename, labels):
@@ -69,8 +70,12 @@ def print_stats(data, labels):
         mflops = [mf for _,mf in runs]
         if times:
             print(f"\n{label}:")
-            print(f"  Time: mean={statistics.mean(times):.3f}s, std={statistics.stdev(times):.3f}s")
-            print(f"  MFLOPS: mean={statistics.mean(mflops):.1f}, std={statistics.stdev(mflops):.1f}")
+            print(f"  Time: mean={statistics.mean(times):.9f}, std={statistics.stdev(times):.9f}s")
+            print(f"  MFLOPS: mean={statistics.mean(mflops):.9f}, std={statistics.stdev(mflops):.9f}")
+            median_time = np.median(times)
+            median_mflops = np.median(mflops)
+            print(f"  Time: median={median_time:.9f}s, IQR={np.percentile(times,75)-np.percentile(times,25):.9f}s")
+            print(f"  MFLOPS: median={median_mflops:.9f}, IQR={np.percentile(mflops,75)-np.percentile(mflops,25):.9f}")
 
 def analyze_csv(csv_path):
     """
@@ -93,41 +98,53 @@ def analyze_csv(csv_path):
         mflops = values['mflops']
         if times:
             print(f"{config}:")
-            print(f"  Time: mean={statistics.mean(times):.3f}s, std={statistics.stdev(times):.3f}s")
-            print(f"  MFLOPS: mean={statistics.mean(mflops):.1f}, std={statistics.stdev(mflops):.1f}\n")
+            print(f"  Time: mean={statistics.mean(times):.9f}s, std={statistics.stdev(times):.9f}s")
+            print(f"  MFLOPS: mean={statistics.mean(mflops):.9f}, std={statistics.stdev(mflops):.9f}")
+            median_time = np.median(times)
+            median_mflops = np.median(mflops)
+            print(f"  Time: median={median_time:.9f}s, IQR={np.percentile(times,75)-np.percentile(times,25):.9f}s")
+            print(f"  MFLOPS: median={median_mflops:.9f}, IQR={np.percentile(mflops,75)-np.percentile(mflops,25):.9f}\n")
+
+def warmup(exe, N, warmup_runs=10):
+    for _ in range(warmup_runs):
+        subprocess.run(['taskset', '-c', '0', 'nice', '-n', '-20', exe, str(N)], 
+                       capture_output=True)
 
 def main():
-    parser = argparse.ArgumentParser(description="LINPACK benchmark runner and analyzer")
-    parser.add_argument('--analyze', metavar='CSV_FILE', help='Analyze an existing CSV file instead of running benchmarks')
-    args = parser.parse_args()
+    for N in [10, 100, 250, 500, 1000, 1500]:
+        parser = argparse.ArgumentParser(description="LINPACK benchmark runner and analyzer")
+        parser.add_argument('--analyze', metavar='CSV_FILE', help='Analyze an existing CSV file instead of running benchmarks')
+        args = parser.parse_args()
 
-    if args.analyze:
-        analyze_csv(args.analyze)
-        return
+        if args.analyze:
+            analyze_csv(args.analyze)
+            return
     
-    user_input = input("Enter matrix size: ")
-    N = int(user_input)
-    LDA = N + 1
-    # run measurements
-    print("\nMeasuring original version...")
-    orig_results = measure(ORIG_BIN, N_RUNS, N)
-    print("\nMeasuring Tigress version...")
-    tigress_results = measure(TIGRESS_BIN, N_RUNS, N)
-    print("\nMeasuring VMProtect version...")
-    vmprotect_results = measure(VMPROTECT_BIN, N_RUNS, N)
-    # themida binary file crashes with Segfault
-    #print("\nMeasuring Themida version...")
-    #themida_results = measure(THEMIDA_BIN, N_RUNS, N)
-    print("\nMeasuring my version...")
-    llvm_results = measure(LLVM_BIN, N_RUNS, N)
+        LDA = N + 1
+        # run measurements
+        print("\nMeasuring original version...")
+        warmup(ORIG_BIN, N, warmup_runs=10)
+        orig_results = measure(ORIG_BIN, N_RUNS_ORIG, N)
+        print("\nMeasuring Tigress version...")
+        warmup(TIGRESS_BIN, N, warmup_runs=10)
+        tigress_results = measure(TIGRESS_BIN, N_RUNS_OBF, N)
+        print("\nMeasuring VMProtect version...")
+        warmup(VMPROTECT_BIN, N, warmup_runs=10)
+        vmprotect_results = measure(VMPROTECT_BIN, N_RUNS_OBF, N)
+        #print("\nMeasuring Themida version...")
+        #warmup(THEMIDA_BIN, N, warmup_runs=10)
+        #themida_results = measure(THEMIDA_BIN, N_RUNS_OBF, N)
+        print("\nMeasuring Softcom LLVM obfuscator version...")
+        warmup(LLVM_BIN, N, warmup_runs=10)
+        llvm_results = measure(LLVM_BIN, N_RUNS_OBF, N)
 
-    # Save results
-    all_results = [orig_results, llvm_results, tigress_results, vmprotect_results]
-    labels = ["Original", "Softcom LLVM obfuscator", "Tigress", "VMProtect"]
-    save_csv(all_results, "results/linpack_bench_results_" + str(N) + ".csv", labels)
+        # Save results
+        all_results = [orig_results, llvm_results, tigress_results, vmprotect_results]
+        labels = ["Original", "Softcom LLVM obfuscator", "Tigress", "VMProtect"]
+        save_csv(all_results, "results/linpack_bench_results_" + str(N) + ".csv", labels)
 
-    # Print statistics
-    print_stats(all_results, labels)
+        # Print statistics
+        print_stats(all_results, labels)
 
 if __name__ == "__main__":
     main()

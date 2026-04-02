@@ -527,18 +527,7 @@ double ddot ( int n, double dx[], int incx, double dy[], int incy )
   return dtemp;
 }
 /******************************************************************************/
-/*?
-{
-    "type": "method",
-    "virtualize":
-    {
-        "key1": {
-            "type": "bool",
-            "value": true
-        }
-    }
-}
-?*/
+
 int dgefa ( double a[], int lda, int n, int ipvt[] )
 
 /******************************************************************************/
@@ -659,18 +648,7 @@ int dgefa ( double a[], int lda, int n, int ipvt[] )
   return info;
 }
 /******************************************************************************/
-/*?
-{
-    "type": "method",
-    "virtualize":
-    {
-        "key1": {
-            "type": "bool",
-            "value": true
-        }
-    }
-}
-?*/
+
 void dgesl ( double a[], int lda, int n, int ipvt[], double b[], int job )
 
 /******************************************************************************/
@@ -1011,18 +989,7 @@ int idamax ( int n, double dx[], int incx )
   return value;
 }
 /******************************************************************************/
-/*?
-{
-    "type": "method",
-    "virtualize":
-    {
-        "key1": {
-            "type": "bool",
-            "value": true
-        }
-    }
-}
-?*/
+
 double r8_random ( int iseed[4] )
 
 /******************************************************************************/
@@ -1112,18 +1079,7 @@ double r8_random ( int iseed[4] )
   return value;
 }
 /******************************************************************************/
-/*?
-{
-    "type": "method",
-    "virtualize":
-    {
-        "key1": {
-            "type": "bool",
-            "value": true
-        }
-    }
-}
-?*/
+
 double *r8mat_gen ( int lda, int n )
 
 /******************************************************************************/
@@ -1174,18 +1130,7 @@ double *r8mat_gen ( int lda, int n )
   return a;
 }
 /******************************************************************************/
-/*?
-{
-    "type": "method",
-    "virtualize":
-    {
-        "key1": {
-            "type": "bool",
-            "value": true
-        }
-    }
-}
-?*/
+
 double r8mat_norm_li ( int lda, int m, int n, double a[] )
 
 /******************************************************************************/

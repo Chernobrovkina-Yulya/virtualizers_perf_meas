@@ -1,2 +1,2 @@
-# This script uses only Python standard library, no extra packages required.
-python>=3.8
+# This script uses numpy
+numpy
