@@ -16,8 +16,7 @@ Path("results").mkdir(exist_ok=True)
 SCRIPT_DIR = Path(__file__).parent.resolve()
 
 # Configuration
-N_RUNS_ORIG = 200   # original version executes far more fast, so increase number of runs
-N_RUNS_OBF = 40     # should be less, since VMProtect too slow
+N_RUNS = 40
 # Binary files
 ORIG_BIN =  SCRIPT_DIR / "linpack"
 LLVM_BIN =  SCRIPT_DIR / "llvm_linpack"
@@ -46,7 +45,7 @@ def measure(exe, runs, N):
     """Run benchmark multiple times, return list of (t, mf)."""
     results = []
     for i in range(runs):
-        print(f"  Run {i+1}/{runs}...")
+        #print(f"  Run {i+1}/{runs}...")
         t, mf = run_benchmark(exe, N)
         if t is not None:
             results.append((t, mf))
@@ -111,7 +110,7 @@ def warmup(exe, N, warmup_runs=10):
                        capture_output=True)
 
 def main():
-    for N in [10, 100, 250, 500, 1000, 1500]:
+    for N in [100, 250, 500]:
         parser = argparse.ArgumentParser(description="LINPACK benchmark runner and analyzer")
         parser.add_argument('--analyze', metavar='CSV_FILE', help='Analyze an existing CSV file instead of running benchmarks')
         args = parser.parse_args()
@@ -124,24 +123,24 @@ def main():
         # run measurements
         print("\nMeasuring original version...")
         warmup(ORIG_BIN, N, warmup_runs=10)
-        orig_results = measure(ORIG_BIN, N_RUNS_ORIG, N)
+        orig_results = measure(ORIG_BIN, N_RUNS, N)
         print("\nMeasuring Tigress version...")
         warmup(TIGRESS_BIN, N, warmup_runs=10)
-        tigress_results = measure(TIGRESS_BIN, N_RUNS_OBF, N)
+        tigress_results = measure(TIGRESS_BIN, N_RUNS, N)
         print("\nMeasuring VMProtect version...")
         warmup(VMPROTECT_BIN, N, warmup_runs=10)
-        vmprotect_results = measure(VMPROTECT_BIN, N_RUNS_OBF, N)
-        #print("\nMeasuring Themida version...")
-        #warmup(THEMIDA_BIN, N, warmup_runs=10)
-        #themida_results = measure(THEMIDA_BIN, N_RUNS_OBF, N)
+        vmprotect_results = measure(VMPROTECT_BIN, N_RUNS, N)
+        print("\nMeasuring Themida version...")
+        warmup(THEMIDA_BIN, N, warmup_runs=10)
+        themida_results = measure(THEMIDA_BIN, N_RUNS, N)
         print("\nMeasuring Softcom LLVM obfuscator version...")
         warmup(LLVM_BIN, N, warmup_runs=10)
-        llvm_results = measure(LLVM_BIN, N_RUNS_OBF, N)
+        llvm_results = measure(LLVM_BIN, N_RUNS, N)
 
         # Save results
-        all_results = [orig_results, llvm_results, tigress_results, vmprotect_results]
-        labels = ["Original", "Softcom LLVM obfuscator", "Tigress", "VMProtect"]
-        save_csv(all_results, "results/linpack_bench_results_" + str(N) + ".csv", labels)
+        all_results = [orig_results]
+        labels = ["Original"]
+        save_csv(all_results, "results/linpack_bench_results_orig_" + str(N) + ".csv", labels)
 
         # Print statistics
         print_stats(all_results, labels)
